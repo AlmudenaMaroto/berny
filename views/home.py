@@ -178,6 +178,29 @@ def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
                 allow_multiple=False,
             )
 
+    # App bar buttons - only show export/import on desktop
+    app_bar_buttons = []
+    if export_picker:
+        app_bar_buttons.append(
+            ft.IconButton(
+                icon=ft.Icons.FILE_UPLOAD,
+                icon_color=TEXT_SECONDARY,
+                icon_size=22,
+                on_click=do_export,
+                tooltip="Exportar datos",
+            )
+        )
+    if import_picker:
+        app_bar_buttons.append(
+            ft.IconButton(
+                icon=ft.Icons.FILE_DOWNLOAD,
+                icon_color=TEXT_SECONDARY,
+                icon_size=22,
+                on_click=do_import,
+                tooltip="Importar datos",
+            )
+        )
+
     return ft.View(
         "/",
         [
@@ -193,20 +216,7 @@ def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
                             color=TEXT_PRIMARY,
                             expand=True,
                         ),
-                        ft.IconButton(
-                            icon=ft.Icons.FILE_UPLOAD,
-                            icon_color=TEXT_SECONDARY,
-                            icon_size=22,
-                            on_click=do_export,
-                            tooltip="Exportar datos",
-                        ),
-                        ft.IconButton(
-                            icon=ft.Icons.FILE_DOWNLOAD,
-                            icon_color=TEXT_SECONDARY,
-                            icon_size=22,
-                            on_click=do_import,
-                            tooltip="Importar datos",
-                        ),
+                        *app_bar_buttons,
                     ],
                     spacing=4,
                     vertical_alignment=ft.CrossAxisAlignment.CENTER,
