@@ -10,7 +10,7 @@ def _color_light(hex_color):
     return AMBER_LIGHT
 
 
-def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
+def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
     selected_color = [HIVE_COLORS[0]["hex"]]
 
     name_field = ft.TextField(
@@ -74,7 +74,7 @@ def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
                         spacing=4,
                     ),
                     padding=40,
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                 )
             )
         else:
@@ -98,7 +98,7 @@ def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
                                 height=44,
                                 border_radius=22,
                                 bgcolor=hive_color_light,
-                                alignment=ft.alignment.center,
+                                alignment=ft.Alignment.CENTER,
                             ),
                             ft.Column(
                                 [
@@ -162,41 +162,25 @@ def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
 
     load_hives()
 
-    def do_export(e):
-        if export_picker:
-            export_picker.save_file(
-                dialog_title="Exportar base de datos",
-                file_name="berny_backup.db",
-                allowed_extensions=["db"],
-            )
-
-    def do_import(e):
-        if import_picker:
-            import_picker.pick_files(
-                dialog_title="Importar base de datos",
-                allowed_extensions=["db"],
-                allow_multiple=False,
-            )
-
     # App bar buttons - only show export/import on desktop
     app_bar_buttons = []
-    if export_picker:
+    if on_export:
         app_bar_buttons.append(
             ft.IconButton(
                 icon=ft.Icons.FILE_UPLOAD,
                 icon_color=TEXT_SECONDARY,
                 icon_size=22,
-                on_click=do_export,
+                on_click=on_export,
                 tooltip="Exportar datos",
             )
         )
-    if import_picker:
+    if on_import:
         app_bar_buttons.append(
             ft.IconButton(
                 icon=ft.Icons.FILE_DOWNLOAD,
                 icon_color=TEXT_SECONDARY,
                 icon_size=22,
-                on_click=do_import,
+                on_click=on_import,
                 tooltip="Importar datos",
             )
         )

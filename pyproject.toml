@@ -2,17 +2,29 @@
 name = "berny"
 version = "1.0.0"
 description = "Seguimiento de colmenas - Apiario"
+requires-python = ">=3.11"
+dependencies = [
+    "flet",
+]
 
 [tool.flet]
-app.module = "main"
-app.name = "Berny"
-app.description = "Seguimiento de colmenas"
-app.product = "Berny"
-app.icon = "assets/icon.png"
+product = "Berny"
+org = "com.berny"
+
+[tool.flet.app]
+path = "src"
+module = "main"
+
+[tool.flet.app.startup_screen]
+show = true
+message = "Iniciando Berny..."
+
+[tool.flet.splash]
+color = "#FEF3C7"
 
 [tool.flet.android]
 min_sdk_version = 21
 adaptive_icon_background = "#F5C518"
 
-[tool.flet.android.permission]
+[tool.flet.android.permissions]
 "android.permission.INTERNET" = true

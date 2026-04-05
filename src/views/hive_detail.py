@@ -140,7 +140,7 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
                         spacing=4,
                     ),
                     padding=30,
-                    alignment=ft.alignment.center,
+                    alignment=ft.Alignment.CENTER,
                 )
             )
         else:
@@ -226,7 +226,7 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
                             height=36,
                             border_radius=18,
                             bgcolor=hive_color_light,
-                            alignment=ft.alignment.center,
+                            alignment=ft.Alignment.CENTER,
                         ),
                         ft.Text(
                             hive["name"],
@@ -270,7 +270,7 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
                     on_click=lambda e: navigate("add_visit", hive_id),
                     tooltip="Nueva visita",
                 ),
-                alignment=ft.alignment.bottom_right,
+                alignment=ft.Alignment.BOTTOM_RIGHT,
                 padding=ft.padding.only(right=16, bottom=16),
             ),
         ],
