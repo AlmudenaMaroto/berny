@@ -38,6 +38,15 @@ def main(page: ft.Page):
         # File pickers only on desktop
         do_export = None
         do_import = None
+        snack = ft.SnackBar(ft.Text(""))
+        page.overlay.append(snack)
+
+        def show_snack(msg, color=SUCCESS):
+            snack.content = ft.Text(msg)
+            snack.bgcolor = color
+            snack.open = True
+            page.update()
+
         if not is_mobile:
             async def do_export(e):
                 try:
@@ -47,15 +56,9 @@ def main(page: ft.Page):
                     )
                     if path:
                         export_db(path)
-                        page.open(ft.SnackBar(
-                            ft.Text("Base de datos exportada correctamente"),
-                            bgcolor=SUCCESS,
-                        ))
+                        show_snack("Base de datos exportada correctamente")
                 except Exception as exc:
-                    page.open(ft.SnackBar(
-                        ft.Text(f"Error al exportar: {exc}"),
-                        bgcolor=DANGER,
-                    ))
+                    show_snack(f"Error al exportar: {exc}", DANGER)
 
             async def do_import(e):
                 try:
@@ -66,16 +69,10 @@ def main(page: ft.Page):
                     if files:
                         src = files[0].path
                         import_db(src)
-                        page.open(ft.SnackBar(
-                            ft.Text("Base de datos importada. Recargando..."),
-                            bgcolor=SUCCESS,
-                        ))
+                        show_snack("Base de datos importada. Recargando...")
                         navigate("home")
                 except ValueError as exc:
-                    page.open(ft.SnackBar(
-                        ft.Text(str(exc)),
-                        bgcolor=DANGER,
-                    ))
+                    show_snack(str(exc), DANGER)
 
         def navigate(route, *args):
             page.controls.clear()
