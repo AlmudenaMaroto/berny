@@ -7,10 +7,12 @@ description = "Seguimiento de colmenas - Apiario"
 app.module = "main"
 app.name = "Berny"
 app.description = "Seguimiento de colmenas"
+app.product = "Berny"
+app.icon = "assets/icon.png"
 
 [tool.flet.android]
 min_sdk_version = 21
-adaptive_icon_background = "#F59E0B"
+adaptive_icon_background = "#F5C518"
 
 [tool.flet.android.permission]
 "android.permission.INTERNET" = true
