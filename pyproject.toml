@@ -23,7 +23,7 @@ message = "Iniciando Berny..."
 color = "#FEF3C7"
 
 [tool.flet.android]
-min_sdk_version = 21
+min_sdk_version = 23
 adaptive_icon_background = "#F5C518"
 
 [tool.flet.android.permissions]
