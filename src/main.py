@@ -78,22 +78,22 @@ def main(page: ft.Page):
                     ))
 
         def navigate(route, *args):
-            page.views.clear()
+            page.controls.clear()
             if route == "home":
-                page.views.append(home_view(page, navigate, do_export, do_import))
+                page.controls.append(home_view(page, navigate, do_export, do_import))
             elif route == "detail":
                 hive_id = args[0]
-                page.views.append(hive_detail_view(page, hive_id, navigate))
+                page.controls.append(hive_detail_view(page, hive_id, navigate))
             elif route == "edit_hive":
                 hive_id = args[0]
-                page.views.append(edit_hive_view(page, hive_id, navigate))
+                page.controls.append(edit_hive_view(page, hive_id, navigate))
             elif route == "add_visit":
                 hive_id = args[0]
-                page.views.append(visit_form_view(page, hive_id, navigate))
+                page.controls.append(visit_form_view(page, hive_id, navigate))
             elif route == "edit_visit":
                 hive_id = args[0]
                 visit_id = args[1]
-                page.views.append(visit_form_view(page, hive_id, navigate, visit_id))
+                page.controls.append(visit_form_view(page, hive_id, navigate, visit_id))
             page.update()
 
         navigate("home")
@@ -101,10 +101,7 @@ def main(page: ft.Page):
     except Exception:
         err = traceback.format_exc()
         print(f"BERNY ERROR: {err}")
-        try:
-            page.views.clear()
-        except Exception:
-            pass
+        page.controls.clear()
         page.add(
             ft.SafeArea(
                 content=ft.Column([

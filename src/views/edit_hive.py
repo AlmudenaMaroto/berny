@@ -6,7 +6,7 @@ from theme import *
 def edit_hive_view(page: ft.Page, hive_id: int, navigate):
     hive = get_hive(hive_id)
     if not hive:
-        return ft.View("/", [ft.Text("Colmena no encontrada")])
+        return ft.Column([ft.Text("Colmena no encontrada")])
 
     selected_color = [hive.get("color", AMBER)]
 
@@ -53,8 +53,7 @@ def edit_hive_view(page: ft.Page, hive_id: int, navigate):
         update_hive(hive_id, name, selected_color[0])
         navigate("detail", hive_id)
 
-    return ft.View(
-        f"/hive/{hive_id}/edit",
+    return ft.Column(
         [
             ft.Container(
                 content=ft.Row(
@@ -102,7 +101,6 @@ def edit_hive_view(page: ft.Page, hive_id: int, navigate):
                 padding=ft.padding.all(20),
             ),
         ],
-        bgcolor=BG,
-        padding=0,
+        expand=True,
         spacing=0,
     )

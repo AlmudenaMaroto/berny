@@ -109,7 +109,7 @@ def _visit_card(visit: dict, is_latest: bool, on_edit, on_delete):
 def hive_detail_view(page: ft.Page, hive_id: int, navigate):
     hive = get_hive(hive_id)
     if not hive:
-        return ft.View("/", [ft.Text("Colmena no encontrada")])
+        return ft.Column([ft.Text("Colmena no encontrada")])
 
     hive_color = hive.get("color", AMBER)
     # find light variant
@@ -208,8 +208,7 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
 
     load_visits()
 
-    return ft.View(
-        f"/hive/{hive_id}",
+    return ft.Column(
         [
             # App bar
             ft.Container(
@@ -274,7 +273,6 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
                 padding=ft.padding.only(right=16, bottom=16),
             ),
         ],
-        bgcolor=BG,
-        padding=0,
+        expand=True,
         spacing=0,
     )

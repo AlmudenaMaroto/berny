@@ -232,8 +232,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
     def section_title(text):
         return ft.Text(text, size=13, weight=ft.FontWeight.W_600, color=AMBER_DARK)
 
-    return ft.View(
-        f"/hive/{hive_id}/visit",
+    return ft.Column(
         [
             # App bar
             ft.Container(
@@ -331,7 +330,6 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
                 padding=ft.padding.symmetric(horizontal=20, vertical=4),
             ),
         ],
-        bgcolor=BG,
-        padding=0,
+        expand=True,
         spacing=0,
     )

@@ -185,8 +185,7 @@ def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
             )
         )
 
-    return ft.View(
-        "/",
+    return ft.Column(
         [
             # App bar
             ft.Container(
@@ -237,7 +236,6 @@ def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
                 padding=ft.padding.symmetric(horizontal=16, vertical=8),
             ),
         ],
-        bgcolor=BG,
-        padding=0,
+        expand=True,
         spacing=0,
     )
