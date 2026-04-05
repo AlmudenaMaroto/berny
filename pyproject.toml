@@ -1,0 +1,16 @@
+[project]
+name = "berny"
+version = "1.0.0"
+description = "Seguimiento de colmenas - Apiario"
+
+[tool.flet]
+app.module = "main"
+app.name = "Berny"
+app.description = "Seguimiento de colmenas"
+
+[tool.flet.android]
+min_sdk_version = 21
+adaptive_icon_background = "#F59E0B"
+
+[tool.flet.android.permission]
+"android.permission.INTERNET" = true
