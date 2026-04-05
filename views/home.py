@@ -1,5 +1,5 @@
 import flet as ft
-from database import get_all_hives, create_hive, delete_hive, export_db, import_db
+from database import get_all_hives, create_hive, delete_hive
 from theme import *
 
 
@@ -10,7 +10,7 @@ def _color_light(hex_color):
     return AMBER_LIGHT
 
 
-def home_view(page: ft.Page, navigate):
+def home_view(page: ft.Page, navigate, export_picker=None, import_picker=None):
     selected_color = [HIVE_COLORS[0]["hex"]]
 
     name_field = ft.TextField(
@@ -162,63 +162,21 @@ def home_view(page: ft.Page, navigate):
 
     load_hives()
 
-    # --- File pickers for export / import ---
-    def on_export_result(e: ft.FilePickerResultEvent):
-        if not e.path:
-            return
-        try:
-            export_db(e.path)
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Base de datos exportada correctamente"),
-                bgcolor=SUCCESS,
-            )
-            page.snack_bar.open = True
-        except Exception as exc:
-            page.snack_bar = ft.SnackBar(
-                ft.Text(f"Error al exportar: {exc}"),
-                bgcolor=DANGER,
-            )
-            page.snack_bar.open = True
-        page.update()
-
-    def on_import_result(e: ft.FilePickerResultEvent):
-        if not e.files:
-            return
-        src = e.files[0].path
-        try:
-            import_db(src)
-            page.snack_bar = ft.SnackBar(
-                ft.Text("Base de datos importada. Recargando..."),
-                bgcolor=SUCCESS,
-            )
-            page.snack_bar.open = True
-            load_hives()
-        except ValueError as exc:
-            page.snack_bar = ft.SnackBar(
-                ft.Text(str(exc)),
-                bgcolor=DANGER,
-            )
-            page.snack_bar.open = True
-        page.update()
-
-    export_picker = ft.FilePicker(on_result=on_export_result)
-    import_picker = ft.FilePicker(on_result=on_import_result)
-    page.overlay.extend([export_picker, import_picker])
-    page.update()
-
     def do_export(e):
-        export_picker.save_file(
-            dialog_title="Exportar base de datos",
-            file_name="berny_backup.db",
-            allowed_extensions=["db"],
-        )
+        if export_picker:
+            export_picker.save_file(
+                dialog_title="Exportar base de datos",
+                file_name="berny_backup.db",
+                allowed_extensions=["db"],
+            )
 
     def do_import(e):
-        import_picker.pick_files(
-            dialog_title="Importar base de datos",
-            allowed_extensions=["db"],
-            allow_multiple=False,
-        )
+        if import_picker:
+            import_picker.pick_files(
+                dialog_title="Importar base de datos",
+                allowed_extensions=["db"],
+                allow_multiple=False,
+            )
 
     return ft.View(
         "/",

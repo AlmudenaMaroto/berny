@@ -5,10 +5,18 @@ from datetime import datetime
 
 
 DB_NAME = "berny.db"
+_db_dir = None
+
+
+def set_db_dir(path):
+    global _db_dir
+    _db_dir = path
 
 
 def get_db_path():
-    """Returns the database path in the app's data directory."""
+    if _db_dir:
+        os.makedirs(_db_dir, exist_ok=True)
+        return os.path.join(_db_dir, DB_NAME)
     return DB_NAME
 
 
