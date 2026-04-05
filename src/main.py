@@ -35,9 +35,7 @@ def main(page: ft.Page):
             except Exception:
                 pass
 
-        # File pickers only on desktop
-        do_export = None
-        do_import = None
+        # Export/import - works on both desktop and mobile
         snack = ft.SnackBar(ft.Text(""))
         page.overlay.append(snack)
 
@@ -47,50 +45,72 @@ def main(page: ft.Page):
             snack.open = True
             page.update()
 
-        if not is_mobile:
-            async def do_export(e):
-                try:
-                    path = await ft.FilePicker().save_file(
-                        dialog_title="Exportar base de datos",
-                        file_name="berny_backup.db",
-                    )
-                    if path:
-                        export_db(path)
-                        show_snack("Base de datos exportada correctamente")
-                except Exception as exc:
-                    show_snack(f"Error al exportar: {exc}", DANGER)
+        async def do_export(e):
+            try:
+                from database import get_db_path
+                db_path = get_db_path()
+                # Force WAL checkpoint
+                import sqlite3
+                conn = sqlite3.connect(db_path)
+                conn.execute("PRAGMA wal_checkpoint(FULL)")
+                conn.close()
+                # Read DB bytes for mobile compatibility
+                with open(db_path, "rb") as f:
+                    db_bytes = f.read()
+                path = await ft.FilePicker().save_file(
+                    dialog_title="Exportar base de datos",
+                    file_name="berny_backup.db",
+                    src_bytes=db_bytes,
+                )
+                if path:
+                    show_snack("Base de datos exportada correctamente")
+            except Exception as exc:
+                show_snack(f"Error al exportar: {exc}", DANGER)
 
-            async def do_import(e):
-                try:
-                    files = await ft.FilePicker().pick_files(
-                        dialog_title="Importar base de datos",
-                        allow_multiple=False,
-                    )
-                    if files:
-                        src = files[0].path
-                        import_db(src)
-                        show_snack("Base de datos importada. Recargando...")
-                        navigate("home")
-                except ValueError as exc:
-                    show_snack(str(exc), DANGER)
+        async def do_import(e):
+            try:
+                files = await ft.FilePicker().pick_files(
+                    dialog_title="Importar base de datos",
+                    allow_multiple=False,
+                    with_data=True,
+                )
+                if files:
+                    f = files[0]
+                    if f.bytes:
+                        # Mobile: we have bytes directly
+                        import tempfile, os
+                        tmp = os.path.join(tempfile.gettempdir(), "berny_import.db")
+                        with open(tmp, "wb") as tf:
+                            tf.write(f.bytes)
+                        import_db(tmp)
+                        os.remove(tmp)
+                    elif f.path:
+                        # Desktop: we have a file path
+                        import_db(f.path)
+                    show_snack("Base de datos importada. Recargando...")
+                    navigate("home")
+            except ValueError as exc:
+                show_snack(str(exc), DANGER)
 
         def navigate(route, *args):
             page.controls.clear()
+            content = None
             if route == "home":
-                page.controls.append(home_view(page, navigate, do_export, do_import))
+                content = home_view(page, navigate, do_export, do_import)
             elif route == "detail":
                 hive_id = args[0]
-                page.controls.append(hive_detail_view(page, hive_id, navigate))
+                content = hive_detail_view(page, hive_id, navigate)
             elif route == "edit_hive":
                 hive_id = args[0]
-                page.controls.append(edit_hive_view(page, hive_id, navigate))
+                content = edit_hive_view(page, hive_id, navigate)
             elif route == "add_visit":
                 hive_id = args[0]
-                page.controls.append(visit_form_view(page, hive_id, navigate))
+                content = visit_form_view(page, hive_id, navigate)
             elif route == "edit_visit":
                 hive_id = args[0]
                 visit_id = args[1]
-                page.controls.append(visit_form_view(page, hive_id, navigate, visit_id))
+                content = visit_form_view(page, hive_id, navigate, visit_id)
+            page.controls.append(ft.SafeArea(content=content, expand=True))
             page.update()
 
         navigate("home")
