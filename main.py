@@ -1,10 +1,4 @@
 import flet as ft
-from database import init_db, set_db_dir, export_db, import_db
-from views.home import home_view
-from views.hive_detail import hive_detail_view
-from views.edit_hive import edit_hive_view
-from views.visit_form import visit_form_view
-from theme import SUCCESS, DANGER
 import os
 import traceback
 
@@ -14,21 +8,32 @@ def main(page: ft.Page):
         page.title = "Berny"
         page.bgcolor = "#FAFAF9"
 
-        is_mobile = page.platform in (ft.PagePlatform.ANDROID, ft.PagePlatform.IOS)
+        # Import everything inside main to catch import errors
+        from database import init_db, export_db, import_db
+        from views.home import home_view
+        from views.hive_detail import hive_detail_view
+        from views.edit_hive import edit_hive_view
+        from views.visit_form import visit_form_view
+        from theme import SUCCESS, DANGER
+
+        # Detect platform safely
+        is_mobile = False
+        try:
+            is_mobile = str(page.platform).upper() in ("PAGEPLATFORM.ANDROID", "PAGEPLATFORM.IOS", "ANDROID", "IOS")
+        except Exception:
+            pass
 
         # Window size only on desktop
         if not is_mobile:
-            page.window.width = 400
-            page.window.height = 740
-
-        # Set DB directory
-        if is_mobile:
-            storage_dir = os.path.join(os.path.expanduser("~"), ".berny")
-            set_db_dir(storage_dir)
+            try:
+                page.window.width = 400
+                page.window.height = 740
+            except Exception:
+                pass
 
         init_db()
 
-        # File pickers only on desktop (not supported well on mobile)
+        # File pickers only on desktop
         export_picker = None
         import_picker = None
         if not is_mobile:
@@ -95,10 +100,18 @@ def main(page: ft.Page):
 
         navigate("home")
     except Exception:
-        traceback.print_exc()
+        err = traceback.format_exc()
+        print(f"BERNY ERROR: {err}")
         page.views.clear()
         page.views.append(
-            ft.View("/error", [ft.Text(f"Error: {traceback.format_exc()}", selectable=True)])
+            ft.View("/error", [
+                ft.SafeArea(
+                    content=ft.Column([
+                        ft.Text("Error al iniciar Berny", size=18, weight=ft.FontWeight.BOLD),
+                        ft.Text(err, size=10, selectable=True),
+                    ], scroll=ft.ScrollMode.AUTO)
+                )
+            ])
         )
         page.update()
 
