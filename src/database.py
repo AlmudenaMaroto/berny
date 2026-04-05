@@ -16,8 +16,11 @@ def set_db_dir(path):
 def get_db_path():
     global _db_dir
     if not _db_dir:
-        # Always use a writable directory (critical for Android)
-        _db_dir = os.path.join(os.path.expanduser("~"), ".berny")
+        # On Android, FLET_APP_STORAGE_DATA points to a writable directory
+        # On desktop, fall back to ~/.berny
+        _db_dir = os.environ.get("FLET_APP_STORAGE_DATA", None)
+        if not _db_dir:
+            _db_dir = os.path.join(os.path.expanduser("~"), ".berny")
     os.makedirs(_db_dir, exist_ok=True)
     return os.path.join(_db_dir, DB_NAME)
 
