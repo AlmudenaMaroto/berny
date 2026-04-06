@@ -1,6 +1,9 @@
 import flet as ft
+import os
+import shutil
+import uuid
 from datetime import datetime
-from database import create_visit, get_visit, update_visit
+from database import create_visit, get_visit, update_visit, get_photos_dir
 from theme import *
 
 
@@ -103,6 +106,9 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         label="Realeras",
         value=bool(val("has_queen_cells", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     drone_level_dd = ft.Dropdown(
@@ -137,36 +143,54 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         label="Tratamiento varroa",
         value=bool(val("varroa_treatment", "") == "Sí") if isinstance(val("varroa_treatment", ""), str) else bool(val("varroa_treatment", "")),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     has_varroa_sw = ft.Switch(
         label="Tiene varroa",
         value=bool(val("has_varroa", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     hive_opened_sw = ft.Switch(
         label="Colmena abierta",
         value=bool(val("hive_opened", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     extra_food_sw = ft.Switch(
         label="Comida extra",
         value=bool(val("extra_food", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     super_sw = ft.Switch(
         label="Alza",
         value=bool(val("has_super", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     queen_excluder_sw = ft.Switch(
         label="Excluidor de reinas",
         value=bool(val("has_queen_excluder", 0)),
         active_color=AMBER,
+        inactive_thumb_color="#D6D3D1",
+        inactive_track_color="#E7E5E4",
+        label_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     grid_mode_dd = ft.Dropdown(
@@ -194,11 +218,101 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         text_size=14,
     )
 
+    # --- Photo ---
+    photo_path = [val("photo_path", "")]
+    photo_preview = ft.Column(spacing=4)
+
+    def build_photo_preview():
+        photo_preview.controls.clear()
+        if photo_path[0] and os.path.exists(photo_path[0]):
+            photo_preview.controls.append(
+                ft.Container(
+                    content=ft.Stack(
+                        [
+                            ft.Image(
+                                src=photo_path[0],
+                                width=280,
+                                height=200,
+                                fit=ft.ImageFit.COVER,
+                                border_radius=ft.border_radius.all(8),
+                            ),
+                            ft.Container(
+                                content=ft.IconButton(
+                                    icon=ft.Icons.DELETE,
+                                    icon_color=CARD_BG,
+                                    icon_size=20,
+                                    bgcolor="#00000088",
+                                    on_click=remove_photo,
+                                    tooltip="Quitar foto",
+                                ),
+                                alignment=ft.alignment.top_right,
+                            ),
+                        ],
+                    ),
+                    border_radius=8,
+                    clip_behavior=ft.ClipBehavior.HARD_EDGE,
+                )
+            )
+
+    def remove_photo(e):
+        photo_path[0] = ""
+        build_photo_preview()
+        page.update()
+
+    file_picker = ft.FilePicker()
+
+    def on_file_picked(e: ft.FilePickerResultEvent):
+        if e.files and len(e.files) > 0:
+            picked = e.files[0]
+            photos_dir = get_photos_dir()
+            ext = os.path.splitext(picked.name)[1] if picked.name else ".jpg"
+            dest_name = f"{uuid.uuid4().hex}{ext}"
+            dest_path = os.path.join(photos_dir, dest_name)
+            if picked.path:
+                shutil.copy2(picked.path, dest_path)
+                photo_path[0] = dest_path
+            elif picked.bytes:
+                with open(dest_path, "wb") as f:
+                    f.write(picked.bytes)
+                photo_path[0] = dest_path
+            build_photo_preview()
+            page.update()
+
+    file_picker.on_result = on_file_picked
+    page.overlay.append(file_picker)
+
+    def pick_photo(e):
+        file_picker.pick_files(
+            dialog_title="Seleccionar foto",
+            allow_multiple=False,
+            allowed_extensions=["jpg", "jpeg", "png", "webp"],
+            with_data=True,
+        )
+
+    build_photo_preview()
+
     def _int(tf):
         try:
             return int(tf.value)
         except (ValueError, TypeError):
             return 0
+
+    def on_number_focus(e):
+        """Clear the field if it contains only '0' when focused."""
+        if e.control.value == "0":
+            e.control.value = ""
+            e.control.update()
+
+    def on_number_blur(e):
+        """Restore '0' if the field is empty when unfocused."""
+        if not e.control.value or e.control.value.strip() == "":
+            e.control.value = "0"
+            e.control.update()
+
+    # Attach focus/blur handlers to numeric fields
+    for nf in [total_frames, sealed_brood, open_brood, honey_frames_field]:
+        nf.on_focus = on_number_focus
+        nf.on_blur = on_number_blur
 
     def save(e):
         data = {
@@ -220,6 +334,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
             "hive_opened": hive_opened_sw.value,
             "extra_food": extra_food_sw.value,
             "notes": notes_field.value or "",
+            "photo_path": photo_path[0],
         }
 
         if editing:
@@ -307,6 +422,19 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
                         ft.Divider(height=1, color=BORDER),
                         section_title("Observaciones"),
                         notes_field,
+                        ft.Divider(height=1, color=BORDER),
+                        section_title("Foto"),
+                        photo_preview,
+                        ft.OutlinedButton(
+                            "Adjuntar foto",
+                            icon=ft.Icons.CAMERA_ALT,
+                            on_click=pick_photo,
+                            style=ft.ButtonStyle(
+                                color=AMBER_DARK,
+                                side=ft.BorderSide(1, BORDER),
+                                shape=ft.RoundedRectangleBorder(radius=8),
+                            ),
+                        ),
                         ft.Container(height=12),
                         ft.ElevatedButton(
                             "Guardar visita",

@@ -25,6 +25,14 @@ def get_db_path():
     return os.path.join(_db_dir, DB_NAME)
 
 
+def get_photos_dir():
+    """Return the directory for storing visit photos, creating it if needed."""
+    db_path = get_db_path()
+    photos_dir = os.path.join(os.path.dirname(db_path), "photos")
+    os.makedirs(photos_dir, exist_ok=True)
+    return photos_dir
+
+
 def get_connection():
     conn = sqlite3.connect(get_db_path())
     conn.row_factory = sqlite3.Row
@@ -91,9 +99,16 @@ def init_db():
             hive_opened INTEGER DEFAULT 0,
             extra_food INTEGER DEFAULT 0,
             notes TEXT DEFAULT '',
+            photo_path TEXT DEFAULT '',
             FOREIGN KEY (hive_id) REFERENCES hives(id) ON DELETE CASCADE
         )
     """)
+
+    # Migration: add photo_path if missing
+    try:
+        cursor.execute("SELECT photo_path FROM visits LIMIT 1")
+    except sqlite3.OperationalError:
+        cursor.execute("ALTER TABLE visits ADD COLUMN photo_path TEXT DEFAULT ''")
 
     conn.commit()
     conn.close()
@@ -166,8 +181,8 @@ def create_visit(hive_id: int, data: dict) -> int:
             open_brood_frames, honey_frames, bee_amount, has_queen_cells,
             drone_level, feeding_type, varroa_treatment, has_varroa, has_super,
             has_queen_excluder, grid_mode,
-            hive_opened, extra_food, notes)
-           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            hive_opened, extra_food, notes, photo_path)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
         (
             hive_id,
             data.get("date", datetime.now().strftime("%Y-%m-%d")),
@@ -188,6 +203,7 @@ def create_visit(hive_id: int, data: dict) -> int:
             1 if data.get("hive_opened") else 0,
             1 if data.get("extra_food") else 0,
             data.get("notes", ""),
+            data.get("photo_path", ""),
         ),
     )
     conn.commit()
@@ -235,7 +251,8 @@ def update_visit(visit_id: int, data: dict):
            date=?, weather=?, total_frames=?, sealed_brood_frames=?,
            open_brood_frames=?, honey_frames=?, bee_amount=?, has_queen_cells=?,
            drone_level=?, feeding_type=?, varroa_treatment=?, has_varroa=?,
-           has_super=?, has_queen_excluder=?, grid_mode=?, hive_opened=?, extra_food=?, notes=?
+           has_super=?, has_queen_excluder=?, grid_mode=?, hive_opened=?, extra_food=?, notes=?,
+           photo_path=?
            WHERE id=?""",
         (
             data.get("date", ""),
@@ -256,6 +273,7 @@ def update_visit(visit_id: int, data: dict):
             1 if data.get("hive_opened") else 0,
             1 if data.get("extra_food") else 0,
             data.get("notes", ""),
+            data.get("photo_path", ""),
             visit_id,
         ),
     )

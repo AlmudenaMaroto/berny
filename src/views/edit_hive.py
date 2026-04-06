@@ -19,7 +19,7 @@ def edit_hive_view(page: ft.Page, hive_id: int, navigate):
         text_size=14,
     )
 
-    color_row = ft.Row(spacing=4)
+    color_row = ft.Row(spacing=4, wrap=True)
 
     def build_color_picker():
         color_row.controls.clear()

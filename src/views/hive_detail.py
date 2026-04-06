@@ -1,4 +1,5 @@
 import flet as ft
+import os
 from database import get_hive, get_visits_for_hive, get_latest_visit, delete_hive, delete_visit
 from theme import *
 
@@ -94,6 +95,23 @@ def _visit_card(visit: dict, is_latest: bool, on_edit, on_delete):
                     ft.Text(visit["notes"], size=12, color=TEXT_SECONDARY, expand=True),
                 ],
                 spacing=6,
+            )
+        )
+
+    photo = visit.get("photo_path", "")
+    if photo and os.path.exists(photo):
+        rows.append(ft.Divider(height=1, color=BORDER))
+        rows.append(
+            ft.Container(
+                content=ft.Image(
+                    src=photo,
+                    width=260,
+                    height=180,
+                    fit=ft.ImageFit.COVER,
+                    border_radius=ft.border_radius.all(8),
+                ),
+                alignment=ft.alignment.center,
+                padding=ft.padding.only(top=4),
             )
         )
 

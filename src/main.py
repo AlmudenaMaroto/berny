@@ -5,6 +5,11 @@ import traceback
 def main(page: ft.Page):
     page.title = "Berny"
     page.bgcolor = "#FAFAF9"
+    page.theme_mode = ft.ThemeMode.LIGHT
+    page.theme = ft.Theme(
+        color_scheme_seed="#F59E0B",
+        brightness=ft.Brightness.LIGHT,
+    )
 
     try:
         from database import init_db, export_db, import_db
@@ -35,7 +40,7 @@ def main(page: ft.Page):
             except Exception:
                 pass
 
-        # Export/import - works on both desktop and mobile
+        # Export/import with proper FilePicker instances in overlay
         snack = ft.SnackBar(ft.Text(""))
         page.overlay.append(snack)
 
@@ -45,39 +50,24 @@ def main(page: ft.Page):
             snack.open = True
             page.update()
 
-        async def do_export(e):
-            try:
-                from database import get_db_path
-                db_path = get_db_path()
-                # Force WAL checkpoint
-                import sqlite3
-                conn = sqlite3.connect(db_path)
-                conn.execute("PRAGMA wal_checkpoint(FULL)")
-                conn.close()
-                # Read DB bytes for mobile compatibility
-                with open(db_path, "rb") as f:
-                    db_bytes = f.read()
-                path = await ft.FilePicker().save_file(
-                    dialog_title="Exportar base de datos",
-                    file_name="berny_backup.db",
-                    src_bytes=db_bytes,
-                )
-                if path:
+        # Export FilePicker
+        def on_export_result(e: ft.FilePickerResultEvent):
+            if e.path:
+                try:
+                    export_db(e.path)
                     show_snack("Base de datos exportada correctamente")
-            except Exception as exc:
-                show_snack(f"Error al exportar: {exc}", DANGER)
+                except Exception as exc:
+                    show_snack(f"Error al exportar: {exc}", DANGER)
 
-        async def do_import(e):
-            try:
-                files = await ft.FilePicker().pick_files(
-                    dialog_title="Importar base de datos",
-                    allow_multiple=False,
-                    with_data=True,
-                )
-                if files:
-                    f = files[0]
+        export_picker = ft.FilePicker(on_result=on_export_result)
+        page.overlay.append(export_picker)
+
+        # Import FilePicker
+        def on_import_result(e: ft.FilePickerResultEvent):
+            if e.files:
+                try:
+                    f = e.files[0]
                     if f.bytes:
-                        # Mobile: we have bytes directly
                         import tempfile, os
                         tmp = os.path.join(tempfile.gettempdir(), "berny_import.db")
                         with open(tmp, "wb") as tf:
@@ -85,12 +75,33 @@ def main(page: ft.Page):
                         import_db(tmp)
                         os.remove(tmp)
                     elif f.path:
-                        # Desktop: we have a file path
                         import_db(f.path)
                     show_snack("Base de datos importada. Recargando...")
                     navigate("home")
-            except ValueError as exc:
-                show_snack(str(exc), DANGER)
+                except ValueError as exc:
+                    show_snack(str(exc), DANGER)
+
+        import_picker = ft.FilePicker(on_result=on_import_result)
+        page.overlay.append(import_picker)
+
+        def do_export(e):
+            try:
+                export_picker.save_file(
+                    dialog_title="Exportar base de datos",
+                    file_name="berny_backup.db",
+                )
+            except Exception as exc:
+                show_snack(f"Error al exportar: {exc}", DANGER)
+
+        def do_import(e):
+            try:
+                import_picker.pick_files(
+                    dialog_title="Importar base de datos",
+                    allow_multiple=False,
+                    with_data=True,
+                )
+            except Exception as exc:
+                show_snack(f"Error al importar: {exc}", DANGER)
 
         def navigate(route, *args):
             page.controls.clear()

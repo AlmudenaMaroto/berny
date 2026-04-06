@@ -22,7 +22,7 @@ def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
         text_size=14,
     )
 
-    color_row = ft.Row(spacing=4)
+    color_row = ft.Row(spacing=4, wrap=True)
 
     def build_color_picker():
         color_row.controls.clear()
@@ -162,14 +162,14 @@ def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
 
     load_hives()
 
-    # App bar buttons - only show export/import on desktop
+    # App bar buttons - export/import
     app_bar_buttons = []
     if on_export:
         app_bar_buttons.append(
             ft.IconButton(
-                icon=ft.Icons.FILE_UPLOAD,
-                icon_color=TEXT_SECONDARY,
-                icon_size=22,
+                icon=ft.Icons.FILE_UPLOAD_OUTLINED,
+                icon_color=AMBER_DARK,
+                icon_size=24,
                 on_click=on_export,
                 tooltip="Exportar datos",
             )
@@ -177,9 +177,9 @@ def home_view(page: ft.Page, navigate, on_export=None, on_import=None):
     if on_import:
         app_bar_buttons.append(
             ft.IconButton(
-                icon=ft.Icons.FILE_DOWNLOAD,
-                icon_color=TEXT_SECONDARY,
-                icon_size=22,
+                icon=ft.Icons.FILE_DOWNLOAD_OUTLINED,
+                icon_color=AMBER_DARK,
+                icon_size=24,
                 on_click=on_import,
                 tooltip="Importar datos",
             )

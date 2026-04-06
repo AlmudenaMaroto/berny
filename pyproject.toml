@@ -29,3 +29,6 @@ adaptive_icon_background = "#F5C518"
 
 [tool.flet.android.permissions]
 "android.permission.INTERNET" = true
+"android.permission.READ_EXTERNAL_STORAGE" = true
+"android.permission.WRITE_EXTERNAL_STORAGE" = true
+"android.permission.READ_MEDIA_IMAGES" = true
