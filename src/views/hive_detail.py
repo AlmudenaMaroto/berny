@@ -107,10 +107,10 @@ def _visit_card(visit: dict, is_latest: bool, on_edit, on_delete):
                     src=photo,
                     width=260,
                     height=180,
-                    fit=ft.ImageFit.COVER,
+                    fit=ft.BoxFit.COVER,
                     border_radius=ft.border_radius.all(8),
                 ),
-                alignment=ft.alignment.center,
+                alignment=ft.Alignment.CENTER,
                 padding=ft.padding.only(top=4),
             )
         )
@@ -204,12 +204,12 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
     def do_delete_hive(e):
         def confirm_yes(e):
             delete_hive(hive_id)
-            dialog.open = False
+            page.pop_dialog()
             page.update()
             navigate("home")
 
         def confirm_no(e):
-            dialog.open = False
+            page.pop_dialog()
             page.update()
 
         dialog = ft.AlertDialog(
@@ -220,8 +220,7 @@ def hive_detail_view(page: ft.Page, hive_id: int, navigate):
                 ft.TextButton("Eliminar", on_click=confirm_yes, style=ft.ButtonStyle(color=DANGER)),
             ],
         )
-        page.overlay.append(dialog)
-        dialog.open = True
+        page.show_dialog(dialog)
         page.update()
 
     load_visits()

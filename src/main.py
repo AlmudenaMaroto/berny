@@ -8,7 +8,6 @@ def main(page: ft.Page):
     page.theme_mode = ft.ThemeMode.LIGHT
     page.theme = ft.Theme(
         color_scheme_seed="#F59E0B",
-        brightness=ft.Brightness.LIGHT,
     )
 
     try:
@@ -40,7 +39,7 @@ def main(page: ft.Page):
             except Exception:
                 pass
 
-        # Export/import with proper FilePicker instances in overlay
+        # Export/import
         snack = ft.SnackBar(ft.Text(""))
         page.overlay.append(snack)
 
@@ -50,56 +49,42 @@ def main(page: ft.Page):
             snack.open = True
             page.update()
 
-        # Export FilePicker
-        def on_export_result(e: ft.FilePickerResultEvent):
-            if e.path:
-                try:
-                    export_db(e.path)
+        file_picker = ft.FilePicker()
+
+        async def do_export(e):
+            try:
+                result = await file_picker.save_file(
+                    dialog_title="Exportar base de datos",
+                    file_name="berny_backup.db",
+                )
+                if result:
+                    export_db(result)
                     show_snack("Base de datos exportada correctamente")
-                except Exception as exc:
-                    show_snack(f"Error al exportar: {exc}", DANGER)
+            except Exception as exc:
+                show_snack(f"Error al exportar: {exc}", DANGER)
 
-        export_picker = ft.FilePicker(on_result=on_export_result)
-        page.overlay.append(export_picker)
-
-        # Import FilePicker
-        def on_import_result(e: ft.FilePickerResultEvent):
-            if e.files:
-                try:
-                    f = e.files[0]
-                    if f.bytes:
+        async def do_import(e):
+            try:
+                files = await file_picker.pick_files(
+                    dialog_title="Importar base de datos",
+                    allow_multiple=False,
+                    with_data=True,
+                )
+                if files:
+                    f = files[0]
+                    if hasattr(f, 'bytes') and f.bytes:
                         import tempfile, os
                         tmp = os.path.join(tempfile.gettempdir(), "berny_import.db")
                         with open(tmp, "wb") as tf:
                             tf.write(f.bytes)
                         import_db(tmp)
                         os.remove(tmp)
-                    elif f.path:
+                    elif hasattr(f, 'path') and f.path:
                         import_db(f.path)
                     show_snack("Base de datos importada. Recargando...")
                     navigate("home")
-                except ValueError as exc:
-                    show_snack(str(exc), DANGER)
-
-        import_picker = ft.FilePicker(on_result=on_import_result)
-        page.overlay.append(import_picker)
-
-        def do_export(e):
-            try:
-                export_picker.save_file(
-                    dialog_title="Exportar base de datos",
-                    file_name="berny_backup.db",
-                )
-            except Exception as exc:
-                show_snack(f"Error al exportar: {exc}", DANGER)
-
-        def do_import(e):
-            try:
-                import_picker.pick_files(
-                    dialog_title="Importar base de datos",
-                    allow_multiple=False,
-                    with_data=True,
-                )
+            except ValueError as exc:
+                show_snack(str(exc), DANGER)
             except Exception as exc:
                 show_snack(f"Error al importar: {exc}", DANGER)
 

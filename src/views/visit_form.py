@@ -108,7 +108,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     drone_level_dd = ft.Dropdown(
@@ -145,7 +145,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     has_varroa_sw = ft.Switch(
@@ -154,7 +154,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     hive_opened_sw = ft.Switch(
@@ -163,7 +163,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     extra_food_sw = ft.Switch(
@@ -172,7 +172,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     super_sw = ft.Switch(
@@ -181,7 +181,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     queen_excluder_sw = ft.Switch(
@@ -190,7 +190,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
         active_color=AMBER,
         inactive_thumb_color="#D6D3D1",
         inactive_track_color="#E7E5E4",
-        label_style=ft.TextStyle(color=TEXT_PRIMARY),
+        label_text_style=ft.TextStyle(color=TEXT_PRIMARY),
     )
 
     grid_mode_dd = ft.Dropdown(
@@ -233,7 +233,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
                                 src=photo_path[0],
                                 width=280,
                                 height=200,
-                                fit=ft.ImageFit.COVER,
+                                fit=ft.BoxFit.COVER,
                                 border_radius=ft.border_radius.all(8),
                             ),
                             ft.Container(
@@ -245,7 +245,7 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
                                     on_click=remove_photo,
                                     tooltip="Quitar foto",
                                 ),
-                                alignment=ft.alignment.top_right,
+                                alignment=ft.Alignment.TOP_RIGHT,
                             ),
                         ],
                     ),
@@ -261,33 +261,28 @@ def visit_form_view(page: ft.Page, hive_id: int, navigate, visit_id=None):
 
     file_picker = ft.FilePicker()
 
-    def on_file_picked(e: ft.FilePickerResultEvent):
-        if e.files and len(e.files) > 0:
-            picked = e.files[0]
-            photos_dir = get_photos_dir()
-            ext = os.path.splitext(picked.name)[1] if picked.name else ".jpg"
-            dest_name = f"{uuid.uuid4().hex}{ext}"
-            dest_path = os.path.join(photos_dir, dest_name)
-            if picked.path:
-                shutil.copy2(picked.path, dest_path)
-                photo_path[0] = dest_path
-            elif picked.bytes:
-                with open(dest_path, "wb") as f:
-                    f.write(picked.bytes)
-                photo_path[0] = dest_path
-            build_photo_preview()
-            page.update()
-
-    file_picker.on_result = on_file_picked
-    page.overlay.append(file_picker)
-
-    def pick_photo(e):
-        file_picker.pick_files(
+    async def pick_photo(e):
+        files = await file_picker.pick_files(
             dialog_title="Seleccionar foto",
             allow_multiple=False,
             allowed_extensions=["jpg", "jpeg", "png", "webp"],
             with_data=True,
         )
+        if files and len(files) > 0:
+            picked = files[0]
+            photos_dir = get_photos_dir()
+            ext = os.path.splitext(picked.name)[1] if picked.name else ".jpg"
+            dest_name = f"{uuid.uuid4().hex}{ext}"
+            dest_path = os.path.join(photos_dir, dest_name)
+            if hasattr(picked, 'path') and picked.path:
+                shutil.copy2(picked.path, dest_path)
+                photo_path[0] = dest_path
+            elif hasattr(picked, 'bytes') and picked.bytes:
+                with open(dest_path, "wb") as f:
+                    f.write(picked.bytes)
+                photo_path[0] = dest_path
+            build_photo_preview()
+            page.update()
 
     build_photo_preview()
 
