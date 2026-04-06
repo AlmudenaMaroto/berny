@@ -50,7 +50,8 @@ def main(page: ft.Page):
             page.update()
 
         file_picker = ft.FilePicker()
-        page.overlay.append(file_picker)
+        if is_mobile:
+            page.overlay.append(file_picker)
 
         async def do_export(e):
             try:
