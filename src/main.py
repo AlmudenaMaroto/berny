@@ -53,12 +53,22 @@ def main(page: ft.Page):
 
         async def do_export(e):
             try:
+                from database import get_db_path
+                import sqlite3
+                db_path = get_db_path()
+                # Force WAL checkpoint so all data is in the main file
+                conn = sqlite3.connect(db_path)
+                conn.execute("PRAGMA wal_checkpoint(FULL)")
+                conn.close()
+                # Read DB bytes (required for mobile)
+                with open(db_path, "rb") as f:
+                    db_bytes = f.read()
                 result = await file_picker.save_file(
                     dialog_title="Exportar base de datos",
                     file_name="berny_backup.db",
+                    src_bytes=db_bytes,
                 )
                 if result:
-                    export_db(result)
                     show_snack("Base de datos exportada correctamente")
             except Exception as exc:
                 show_snack(f"Error al exportar: {exc}", DANGER)
