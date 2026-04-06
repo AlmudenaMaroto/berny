@@ -49,10 +49,6 @@ def main(page: ft.Page):
             snack.open = True
             page.update()
 
-        file_picker = ft.FilePicker()
-        if is_mobile:
-            page.overlay.append(file_picker)
-
         async def do_export(e):
             try:
                 from database import get_db_path
@@ -65,7 +61,7 @@ def main(page: ft.Page):
                 # Read DB bytes (required for mobile)
                 with open(db_path, "rb") as f:
                     db_bytes = f.read()
-                result = await file_picker.save_file(
+                result = await ft.FilePicker().save_file(
                     dialog_title="Exportar base de datos",
                     file_name="berny_backup.db",
                     src_bytes=db_bytes,
@@ -77,7 +73,7 @@ def main(page: ft.Page):
 
         async def do_import(e):
             try:
-                files = await file_picker.pick_files(
+                files = await ft.FilePicker().pick_files(
                     dialog_title="Importar base de datos",
                     allow_multiple=False,
                     with_data=True,
